@@ -1,0 +1,5 @@
+{
+  "vfs": "../../testdata/stage2-vfs.xml",
+  "prompt": "json> ",
+  "script": "stage2-exit.txt"
+}
