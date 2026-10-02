@@ -1,0 +1,5 @@
+{
+  "vfs": "../testdata/stage2-vfs.xml",
+  "prompt": "student@stage2:$ ",
+  "script": "../scripts/startup.txt"
+}
