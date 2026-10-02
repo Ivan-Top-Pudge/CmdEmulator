@@ -1,0 +1,11 @@
+# Проверка этапов 1–3 после загрузки выбранной XML-VFS.
+# На этапе 3 ls и cd показывают аргументы, полноценная работа с деревом — на этапе 4.
+ls /
+cd /docs
+ls /docs/reports/2026
+ls "$HOME"
+unknown
+ls one two
+exit extra
+ls '${HOME}'
+cd /

@@ -4,6 +4,8 @@ package shell
 import (
 	"fmt"
 	"strings"
+
+	"github.com/Ivan-Top-Pudge/CmdEmulator/src/internal/vfs"
 )
 
 // Result содержит вывод команды и признак завершения сеанса.
@@ -12,12 +14,15 @@ type Result struct {
 	Exit   bool
 }
 
-// Shell выполняет команды эмулятора. На этапе 1 команды ls и cd — заглушки.
-type Shell struct{}
+// Shell хранит VFS в памяти и выполняет команды эмулятора; до этапа 4 ls и cd остаются заглушками.
+type Shell struct {
+	filesystem *vfs.FS
+}
 
-// New создаёт и возвращает обработчик команд эмулятора.
-func New() *Shell {
-	return &Shell{}
+// New сохраняет загруженную VFS и возвращает обработчик команд эмулятора.
+// Для проверки заглушек без файловой системы допускается nil.
+func New(filesystem *vfs.FS) *Shell {
+	return &Shell{filesystem: filesystem}
 }
 
 // Execute разбирает ввод и выполняет команду, возвращая её вывод, признак выхода и ошибку.

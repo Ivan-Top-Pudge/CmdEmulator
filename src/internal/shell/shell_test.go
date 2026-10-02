@@ -32,7 +32,7 @@ func TestExecuteCommands(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			got, err := shell.New().Execute(tt.input)
+			got, err := shell.New(nil).Execute(tt.input)
 			if err != nil || got != tt.want {
 				t.Fatalf("Execute(%q) = %+v, %v; want %+v", tt.input, got, err, tt.want)
 			}
@@ -56,7 +56,7 @@ func TestExecuteEnvironment(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			got, err := shell.New().Execute(tt.input)
+			got, err := shell.New(nil).Execute(tt.input)
 			if err != nil || got.Output != tt.output || got.Exit {
 				t.Fatalf("Execute(%q) = %+v, %v; want %q", tt.input, got, err, tt.output)
 			}
@@ -85,7 +85,7 @@ func TestExecuteErrorsAndRecovery(t *testing.T) {
 		{`ls ${1HOME}`, "неверное имя переменной"},
 		{`ls ${HOME-NAME}`, "неверное имя переменной"},
 	}
-	engine := shell.New()
+	engine := shell.New(nil)
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
 			got, err := engine.Execute(tt.input)
@@ -111,7 +111,7 @@ func TestExecuteUnsetEnvironment(t *testing.T) {
 	if err := os.Unsetenv(missing); err != nil {
 		t.Fatal(err)
 	}
-	got, err := shell.New().Execute("ls ${" + missing + "}/sub")
+	got, err := shell.New(nil).Execute("ls ${" + missing + "}/sub")
 	if err != nil || got.Output != `ls: аргументы ["/sub"]` {
 		t.Fatalf("неизвестная переменная: %+v, %v", got, err)
 	}

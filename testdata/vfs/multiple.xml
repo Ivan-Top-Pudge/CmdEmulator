@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vfs name="multiple-vfs">
+  <directory name="/" mode="755">
+    <directory name="docs">
+      <file name="notes.txt" mode="640">bm90ZXMK</file>
+    </directory>
+    <file name="hello.txt">SGVsbG8sIFZGUyEK</file>
+    <file name="data.bin">AAEC/w==</file>
+  </directory>
+</vfs>

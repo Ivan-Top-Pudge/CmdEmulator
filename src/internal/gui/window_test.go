@@ -91,7 +91,7 @@ func newConfiguredTestWindow(t *testing.T, options gui.Options) (
 	t.Helper()
 	application := test.NewApp()
 	t.Cleanup(application.Quit)
-	window := gui.NewWindow(application, shell.New(), options)
+	window := gui.NewWindow(application, shell.New(nil), options)
 	var input *widget.Entry
 	var output *widget.TextGrid
 	var button *widget.Button
