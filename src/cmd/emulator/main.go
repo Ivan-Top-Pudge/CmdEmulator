@@ -11,6 +11,7 @@ import (
 	"github.com/Ivan-Top-Pudge/CmdEmulator/src/internal/gui"
 	"github.com/Ivan-Top-Pudge/CmdEmulator/src/internal/shell"
 	"github.com/Ivan-Top-Pudge/CmdEmulator/src/internal/startup"
+	"github.com/Ivan-Top-Pudge/CmdEmulator/src/internal/vfs"
 )
 
 // main запускает приложение, выводит справку или ошибку запуска; ничего не возвращает.
@@ -26,11 +27,15 @@ func main() {
 	}
 }
 
-// run проверяет настройки и читает скрипт до создания GUI, затем запускает окно.
+// run проверяет настройки, загружает VFS в память и читает скрипт до создания GUI, затем запускает окно.
 // Возвращает ошибку запуска либо nil после завершения сеанса; итоговые параметры выводит в stdout.
 func run(args []string) error {
 	const op = "main.run"
 	settings, err := config.Load(args)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	filesystem, err := vfs.LoadFile(settings.VFSPath)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -39,9 +44,10 @@ func run(args []string) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	fmt.Printf("Параметры запуска: %s\n", settings)
+	fmt.Printf("VFS загружена: %q\n", filesystem.Name)
 	a := app.New()
-	w := gui.NewWindow(a, shell.New(), gui.Options{
-		VFSName: settings.VFSName(), Prompt: settings.Prompt, Startup: commands,
+	w := gui.NewWindow(a, shell.New(filesystem), gui.Options{
+		VFSName: filesystem.Name, Prompt: settings.Prompt, Startup: commands,
 	})
 	w.ShowAndRun()
 	return nil

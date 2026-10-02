@@ -21,7 +21,7 @@ func TestLoadDefaults(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := config.Settings{VFSPath: vfs, Prompt: config.DefaultPrompt}
-	if got != want || got.VFSName() != "sample.xml" {
+	if got != want {
 		t.Fatalf("Load = %+v; want %+v", got, want)
 	}
 	if !strings.Contains(got.String(), fmt.Sprintf("vfs=%q", vfs)) {

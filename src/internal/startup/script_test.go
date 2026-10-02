@@ -37,7 +37,7 @@ func TestRunErrorsAndExit(t *testing.T) {
 		displayed = append(displayed, command.Text)
 		messages = append(messages, err)
 	}
-	if !startup.Run(commands, shell.New(), display) {
+	if !startup.Run(commands, shell.New(nil), display) {
 		t.Fatal("exit должен завершить сеанс")
 	}
 	if want := []string{"unknown", "exit extra", "ls /", "exit"}; !reflect.DeepEqual(displayed, want) {
@@ -61,7 +61,7 @@ func TestRunKeepsSession(t *testing.T) {
 		}
 		// display принимает результат без сохранения; ничего не возвращает.
 		display := func(startup.Command, shell.Result, error) {}
-		if startup.Run(commands, shell.New(), display) {
+		if startup.Run(commands, shell.New(nil), display) {
 			t.Fatalf("скрипт без exit завершил сеанс: %q", input)
 		}
 	}

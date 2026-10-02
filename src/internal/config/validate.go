@@ -7,7 +7,7 @@ import (
 )
 
 // validate проверяет обязательный путь VFS и доступность итоговых файлов после объединения настроек.
-// Возвращает nil при успехе либо ошибку; содержимое XML на этапе 2 не разбирает.
+// Возвращает nil при успехе либо ошибку; содержимое XML проверяет отдельный загрузчик VFS.
 func (s Settings) validate() error {
 	const op = "config.Settings.validate"
 	if strings.TrimSpace(s.VFSPath) == "" {

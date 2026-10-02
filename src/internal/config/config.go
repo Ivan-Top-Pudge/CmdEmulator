@@ -1,10 +1,7 @@
 // Package config загружает и проверяет настройки запуска независимо от GUI.
 package config
 
-import (
-	"fmt"
-	"path/filepath"
-)
+import "fmt"
 
 // DefaultPrompt используется, если приглашение не задано в JSON или CLI.
 const DefaultPrompt = "$ "
@@ -67,10 +64,4 @@ func applyCLI(settings *Settings, cli overrides) {
 // String возвращает отладочное представление всех итоговых настроек с экранированием строк.
 func (s Settings) String() string {
 	return fmt.Sprintf("config=%q vfs=%q prompt=%q script=%q", s.ConfigPath, s.VFSPath, s.Prompt, s.ScriptPath)
-}
-
-// VFSName возвращает имя физического файла VFS для заголовка окна на этапе 2.
-// Содержимое XML и собственное имя VFS будут обрабатываться на этапе 3.
-func (s Settings) VFSName() string {
-	return filepath.Base(s.VFSPath)
 }
