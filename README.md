@@ -4,6 +4,30 @@
 интерфейсом на Go и Fyne. Вариант №2 практической работы по конфигурационному
 управлению.
 
+## Ссылки для сдачи
+
+Репозиторий: [CmdEmulator](https://github.com/Ivan-Top-Pudge/CmdEmulator).
+Актуальный README: [README.md в develop](https://github.com/Ivan-Top-Pudge/CmdEmulator/blob/develop/README.md).
+
+| Этап | Содержание | Ветка | Статус |
+| --- | --- | --- | --- |
+| 1 | REPL и графический интерфейс | [feature/etap-1][stage1] | Реализован |
+| 2 | Конфигурация и стартовые скрипты | [feature/etap-2][stage2] | Реализован |
+| 3 | Загрузка XML-VFS в память | [feature/etap-3][stage3] | Реализован |
+| 4 | Основные команды: `ls`, `cd`, `du`, `wc` | [feature/etap-4][stage4] | Не реализован |
+| 5 | Дополнительные команды: `mkdir`, `chmod` | [feature/etap-5][stage5] | Не реализован |
+
+[stage1]: https://github.com/Ivan-Top-Pudge/CmdEmulator/tree/feature/etap-1
+[stage2]: https://github.com/Ivan-Top-Pudge/CmdEmulator/tree/feature/etap-2
+[stage3]: https://github.com/Ivan-Top-Pudge/CmdEmulator/tree/feature/etap-3
+[stage4]: https://github.com/Ivan-Top-Pudge/CmdEmulator/tree/feature/etap-4
+[stage5]: https://github.com/Ivan-Top-Pudge/CmdEmulator/tree/feature/etap-5
+
+Ветки этапов 4–5 созданы на основе реализации этапов 1–3 для предварительной
+сдачи ссылок. Их наличие не означает завершение этих этапов. По мере разработки
+содержимое веток и README будет обновляться; ссылки останутся прежними.
+README ниже описывает текущую реализацию этапов 1–3.
+
 ## Текущий этап
 
 Этап 3: загрузка XML-VFS в память, метаданные и содержимое файлов через base64.
