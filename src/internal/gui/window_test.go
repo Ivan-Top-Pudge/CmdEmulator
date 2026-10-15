@@ -146,9 +146,7 @@ func TestWindowStartupThenInteractive(t *testing.T) {
 	if !strings.Contains(output.Text(), "startup.Run: строка 6") {
 		t.Fatalf("нет номера ошибочной строки: %q", output.Text())
 	}
-	if input.Disabled() || button.Disabled() || window.Canvas().Focused() != input {
-		t.Fatal("после скрипта ручной ввод должен быть доступен и иметь фокус")
-	}
+	assertInteractiveControls(t, window, input, button)
 	input.SetText("ls folder")
 	test.Tap(button)
 	if !strings.HasSuffix(output.Text(), "script> ls folder\nls: аргументы [\"folder\"]") {
