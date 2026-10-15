@@ -46,25 +46,28 @@ func LoadFile(path string) ([]Command, error) {
 	return commands, nil
 }
 
-// Read читает по одной команде на строку, пропуская пустые строки и комментарии с # в начале.
-// Возвращает команды либо ошибку чтения; максимальная длина строки — менее 1 МиБ.
+// Read читает по одной команде на строку, удаляя комментарии Go вне кавычек.
+// Возвращает команды с исходными номерами строк либо ошибку чтения или незакрытого блока; строка менее 1 МиБ.
 func Read(reader io.Reader) ([]Command, error) {
 	const op = "startup.Read"
 	scanner := bufio.NewScanner(reader)
 	scanner.Buffer(make([]byte, initialBufferSize), maxLineSize)
 	var commands []Command
+	var comments commentFilter
 	line := 0
 	for scanner.Scan() {
 		line++
-		text := scanner.Text()
-		trimmed := strings.TrimSpace(text)
-		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+		text := comments.strip(scanner.Text(), line)
+		if strings.TrimSpace(text) == "" {
 			continue
 		}
 		commands = append(commands, Command{Text: text, Line: line})
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, fmt.Errorf("%s: чтение строки %d: %w", op, line+1, err)
+	}
+	if comments.blockLine != 0 {
+		return nil, fmt.Errorf("%s: незакрытый блочный комментарий со строки %d", op, comments.blockLine)
 	}
 	return commands, nil
 }
