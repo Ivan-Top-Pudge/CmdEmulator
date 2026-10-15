@@ -1,5 +1,5 @@
 #!/bin/sh
-# Загружает минимальную VFS и выполняет демонстрационный скрипт; ожидает ручной ввод.
+# Загружает минимальную VFS и выполняет демонстрационный скрипт с завершением по exit.
 set -eu
 cd "$(dirname "$0")/.."
 exec ./build/cmd-emulator --vfs testdata/vfs/minimal.xml --script scripts/stage3-startup.txt
