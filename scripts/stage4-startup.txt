@@ -22,8 +22,14 @@ wc summary.txt
 du
 cd ../../../..
 du /docs
+du text.txt
+du empty.txt
 wc text.txt
+wc /text.txt
 wc empty.txt
+cd /other
+cd
+ls docs
 # Ошибки не должны останавливать скрипт или менять текущий каталог.
 ls -z
 cd missing/../docs
