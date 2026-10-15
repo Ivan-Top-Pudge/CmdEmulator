@@ -10,6 +10,7 @@ import (
 	"github.com/Ivan-Top-Pudge/CmdEmulator/src/internal/gui"
 	"github.com/Ivan-Top-Pudge/CmdEmulator/src/internal/shell"
 	"github.com/Ivan-Top-Pudge/CmdEmulator/src/internal/startup"
+	"github.com/Ivan-Top-Pudge/CmdEmulator/src/internal/vfs"
 )
 
 // TestWindowCommandDialogue проверяет заголовок, отправку команд, историю и фокус поля ввода.
@@ -21,7 +22,7 @@ func TestWindowCommandDialogue(t *testing.T) {
 	}
 	test.Type(input, "ls /")
 	input.TypedKey(&fyne.KeyEvent{Name: fyne.KeyReturn})
-	if got := output.Text(); got != "$ ls /\nls: аргументы [\"/\"]" {
+	if got := output.Text(); got != "$ ls /\nfolder\nhello.txt" {
 		t.Fatalf("диалог после Enter: %q", got)
 	}
 	if input.Text != "" || window.Canvas().Focused() != input {
@@ -29,7 +30,7 @@ func TestWindowCommandDialogue(t *testing.T) {
 	}
 	test.Type(input, "cd folder")
 	test.Tap(button)
-	if !strings.HasSuffix(output.Text(), "$ cd folder\ncd: аргументы [\"folder\"]") {
+	if !strings.HasSuffix(output.Text(), "$ cd folder") {
 		t.Fatalf("диалог после кнопки: %q", output.Text())
 	}
 }
@@ -52,7 +53,7 @@ func TestWindowErrorsAndEmptyInput(t *testing.T) {
 	}
 	input.SetText("ls")
 	test.Tap(button)
-	if !strings.HasSuffix(output.Text(), "ls: аргументы []") {
+	if !strings.HasSuffix(output.Text(), "folder\nhello.txt") {
 		t.Fatalf("REPL не продолжил работу после ошибки: %q", output.Text())
 	}
 }
@@ -91,7 +92,12 @@ func newConfiguredTestWindow(t *testing.T, options gui.Options) (
 	t.Helper()
 	application := test.NewApp()
 	t.Cleanup(application.Quit)
-	window := gui.NewWindow(application, shell.New(nil), options)
+	filesystem, err := vfs.Parse([]byte(`<vfs name="test-vfs"><directory name="/">
+<directory name="folder"/><file name="hello.txt">aGVsbG8K</file></directory></vfs>`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	window := gui.NewWindow(application, shell.New(filesystem), options)
 	var input *widget.Entry
 	var output *widget.TextGrid
 	var button *widget.Button
@@ -118,7 +124,7 @@ func TestWindowCustomPrompt(t *testing.T) {
 		_, _, input, output, button := newConfiguredTestWindow(t, gui.Options{VFSName: "vfs.xml", Prompt: prompt})
 		input.SetText("ls")
 		test.Tap(button)
-		if got, want := output.Text(), prompt+"ls\nls: аргументы []"; got != want {
+		if got, want := output.Text(), prompt+"ls\nfolder\nhello.txt"; got != want {
 			t.Fatalf("пользовательское приглашение: %q; want %q", got, want)
 		}
 	}
@@ -149,9 +155,9 @@ func TestWindowStartupThenInteractive(t *testing.T) {
 	if input.Disabled() || button.Disabled() || window.Canvas().Focused() != input {
 		t.Fatal("после скрипта ручной ввод должен быть доступен и иметь фокус")
 	}
-	input.SetText("ls folder")
+	input.SetText("ls /hello.txt")
 	test.Tap(button)
-	if !strings.HasSuffix(output.Text(), "script> ls folder\nls: аргументы [\"folder\"]") {
+	if !strings.HasSuffix(output.Text(), "script> ls /hello.txt\nhello.txt") {
 		t.Fatalf("нет результата ручной команды после скрипта: %q", output.Text())
 	}
 }

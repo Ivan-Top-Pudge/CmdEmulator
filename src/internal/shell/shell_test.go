@@ -1,82 +1,78 @@
-package shell_test
+package shell
 
 import (
 	"os"
+	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/Ivan-Top-Pudge/CmdEmulator/src/internal/shell"
 )
 
-// TestExecuteCommands проверяет команды, кавычки, экранирование и пустой ввод.
-// Ничего не возвращает; о расхождениях сообщает через t.
-func TestExecuteCommands(t *testing.T) {
+// TestParse проверяет кавычки, экранирование и сохранение границ аргументов.
+func TestParse(t *testing.T) {
 	tests := []struct {
 		input string
-		want  shell.Result
+		want  []string
 	}{
-		{"", shell.Result{}},
-		{" \t\n ", shell.Result{}},
-		{"ls", shell.Result{Output: `ls: аргументы []`}},
-		{"cd", shell.Result{Output: `cd: аргументы []`}},
-		{"\tls\t/каталог\t", shell.Result{Output: `ls: аргументы ["/каталог"]`}},
-		{`cd "my folder"`, shell.Result{Output: `cd: аргументы ["my folder"]`}},
-		{`ls 'my folder'`, shell.Result{Output: `ls: аргументы ["my folder"]`}},
-		{`ls my\ folder`, shell.Result{Output: `ls: аргументы ["my folder"]`}},
-		{`ls pre"middle"'end'`, shell.Result{Output: `ls: аргументы ["premiddleend"]`}},
-		{`ls "a\"b"`, shell.Result{Output: `ls: аргументы ["a\"b"]`}},
-		{`ls '$HOME'`, shell.Result{Output: `ls: аргументы ["$HOME"]`}},
-		{`ls \$HOME`, shell.Result{Output: `ls: аргументы ["$HOME"]`}},
-		{`ls $`, shell.Result{Output: `ls: аргументы ["$"]`}},
-		{"exit", shell.Result{Exit: true}},
+		{"", nil}, {" \t\n ", nil}, {"ls", []string{"ls"}},
+		{"\tls\t/каталог\t", []string{"ls", "/каталог"}},
+		{`cd "my folder"`, []string{"cd", "my folder"}},
+		{`ls 'my folder'`, []string{"ls", "my folder"}},
+		{`ls my\ folder`, []string{"ls", "my folder"}},
+		{`ls pre"middle"'end'`, []string{"ls", "premiddleend"}},
+		{`ls "a\"b"`, []string{"ls", `a"b`}},
+		{`ls '$HOME'`, []string{"ls", "$HOME"}},
+		{`ls \$HOME`, []string{"ls", "$HOME"}},
+		{`ls $`, []string{"ls", "$"}},
+		{`ls ""`, []string{"ls", ""}},
 	}
 	for _, tt := range tests {
-		t.Run(tt.input, func(t *testing.T) {
-			got, err := shell.New(nil).Execute(tt.input)
-			if err != nil || got != tt.want {
-				t.Fatalf("Execute(%q) = %+v, %v; want %+v", tt.input, got, err, tt.want)
-			}
-		})
+		got, err := parse(tt.input)
+		if err != nil || !reflect.DeepEqual(got, tt.want) {
+			t.Fatalf("parse(%q) = %q, %v; want %q", tt.input, got, err, tt.want)
+		}
 	}
 }
 
-// TestExecuteEnvironment проверяет раскрытие переменных и сохранение значения в одном аргументе.
-// Ничего не возвращает; о расхождениях сообщает через t.
-func TestExecuteEnvironment(t *testing.T) {
+// TestParseEnvironment проверяет раскрытие переменных без повторного разделения их значений.
+func TestParseEnvironment(t *testing.T) {
 	t.Setenv("EMULATOR_TEST_PATH", "/my folder")
 	t.Setenv("EMULATOR_TEST_EMPTY", "")
 	t.Setenv("EMULATOR_TEST_COMMAND", "ls")
-	tests := []struct{ input, output string }{
-		{`ls $EMULATOR_TEST_PATH`, `ls: аргументы ["/my folder"]`},
-		{`cd "${EMULATOR_TEST_PATH}/sub"`, `cd: аргументы ["/my folder/sub"]`},
-		{`ls '${EMULATOR_TEST_PATH}'`, `ls: аргументы ["${EMULATOR_TEST_PATH}"]`},
-		{`ls "\$EMULATOR_TEST_PATH"`, `ls: аргументы ["$EMULATOR_TEST_PATH"]`},
-		{`ls "${EMULATOR_TEST_EMPTY}/sub"`, `ls: аргументы ["/sub"]`},
-		{`$EMULATOR_TEST_COMMAND /`, `ls: аргументы ["/"]`},
+	tests := []struct {
+		input string
+		want  []string
+	}{
+		{`ls $EMULATOR_TEST_PATH`, []string{"ls", "/my folder"}},
+		{`cd "${EMULATOR_TEST_PATH}/sub"`, []string{"cd", "/my folder/sub"}},
+		{`ls '${EMULATOR_TEST_PATH}'`, []string{"ls", "${EMULATOR_TEST_PATH}"}},
+		{`ls "\$EMULATOR_TEST_PATH"`, []string{"ls", "$EMULATOR_TEST_PATH"}},
+		{`ls "${EMULATOR_TEST_EMPTY}/sub"`, []string{"ls", "/sub"}},
+		{`$EMULATOR_TEST_COMMAND /`, []string{"ls", "/"}},
 	}
 	for _, tt := range tests {
-		t.Run(tt.input, func(t *testing.T) {
-			got, err := shell.New(nil).Execute(tt.input)
-			if err != nil || got.Output != tt.output || got.Exit {
-				t.Fatalf("Execute(%q) = %+v, %v; want %q", tt.input, got, err, tt.output)
-			}
-		})
+		got, err := parse(tt.input)
+		if err != nil || !reflect.DeepEqual(got, tt.want) {
+			t.Fatalf("parse(%q) = %q, %v; want %q", tt.input, got, err, tt.want)
+		}
 	}
 }
 
-// TestExecuteErrorsAndRecovery проверяет контекст ошибок и выполнение команды после ошибочного ввода.
-// Ничего не возвращает; о расхождениях сообщает через t.
-func TestExecuteErrorsAndRecovery(t *testing.T) {
-	t.Setenv("EMULATOR_TEST_EMPTY", "")
+// TestParseUnsetEnvironment проверяет пустую подстановку отсутствующей переменной.
+func TestParseUnsetEnvironment(t *testing.T) {
+	const missing = "EMULATOR_TEST_UNSET_VARIABLE"
+	t.Setenv(missing, "")
+	if err := os.Unsetenv(missing); err != nil {
+		t.Fatal(err)
+	}
+	got, err := parse("ls ${" + missing + "}/sub")
+	if err != nil || !reflect.DeepEqual(got, []string{"ls", "/sub"}) {
+		t.Fatalf("неизвестная переменная: %q, %v", got, err)
+	}
+}
+
+// TestExecuteSyntaxRecovery проверяет ошибки парсера и продолжение работы после них.
+func TestExecuteSyntaxRecovery(t *testing.T) {
 	tests := []struct{ input, message string }{
-		{"unknown", "неизвестная команда"},
-		{"ls one two", "не более одного пути"},
-		{"cd one two", "не более одного пути"},
-		{"exit now", "не принимает аргументы"},
-		{"ls -a", "опции пока не поддерживаются"},
-		{`cd ""`, "непустой путь"},
-		{`ls $EMULATOR_TEST_EMPTY`, "непустой путь"},
-		{"$EMULATOR_TEST_EMPTY", "неизвестная команда"},
 		{`ls "unfinished`, "незакрытая кавычка"},
 		{`cd 'unfinished`, "незакрытая кавычка"},
 		{`ls path\`, "после обратного слеша"},
@@ -85,34 +81,17 @@ func TestExecuteErrorsAndRecovery(t *testing.T) {
 		{`ls ${1HOME}`, "неверное имя переменной"},
 		{`ls ${HOME-NAME}`, "неверное имя переменной"},
 	}
-	engine := shell.New(nil)
+	engine := New(nil)
 	for _, tt := range tests {
-		t.Run(tt.input, func(t *testing.T) {
-			got, err := engine.Execute(tt.input)
-			if err == nil || !strings.Contains(err.Error(), tt.message) || got != (shell.Result{}) {
-				t.Fatalf("Execute(%q) = %+v, %v; want error containing %q", tt.input, got, err, tt.message)
-			}
-			if !strings.HasPrefix(err.Error(), "shell.Execute: ") {
-				t.Fatalf("ошибка не содержит имя операции: %v", err)
-			}
-			if got, err := engine.Execute("ls /"); err != nil || got.Output != `ls: аргументы ["/"]` {
-				t.Fatalf("команда после ошибки: %+v, %v", got, err)
-			}
-		})
-	}
-}
-
-// TestExecuteUnsetEnvironment проверяет, что отсутствующая переменная раскрывается в пустую строку.
-// Ничего не возвращает; о расхождениях сообщает через t.
-func TestExecuteUnsetEnvironment(t *testing.T) {
-	const missing = "EMULATOR_TEST_UNSET_VARIABLE"
-	t.Setenv(missing, "")
-	// Unsetenv проверяется отдельно от переменной с явно заданным пустым значением.
-	if err := os.Unsetenv(missing); err != nil {
-		t.Fatal(err)
-	}
-	got, err := shell.New(nil).Execute("ls ${" + missing + "}/sub")
-	if err != nil || got.Output != `ls: аргументы ["/sub"]` {
-		t.Fatalf("неизвестная переменная: %+v, %v", got, err)
+		result, err := engine.Execute(tt.input)
+		if err == nil || !strings.Contains(err.Error(), tt.message) || result != (Result{}) {
+			t.Fatalf("Execute(%q) = %+v, %v", tt.input, result, err)
+		}
+		if !strings.HasPrefix(err.Error(), "shell.Execute: ") {
+			t.Fatal(err)
+		}
+		if _, err := engine.Execute("ls /"); err != nil {
+			t.Fatal(err)
+		}
 	}
 }

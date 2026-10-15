@@ -1,0 +1,35 @@
+# Этап 4: имена, все сочетания ls, абсолютные и относительные пути.
+ls
+ls -l
+ls -h
+ls -a
+ls -lh
+ls -la
+ls -ha
+ls -lha
+ls -l -h -a docs
+ls -lh big.bin
+ls -- -dash
+ls "my folder"
+cd docs
+cd .
+cd reports/2026/../..
+ls
+cd /docs/../other
+ls
+cd ../docs/reports/2026
+wc summary.txt
+du
+cd ../../../..
+du /docs
+wc text.txt
+wc empty.txt
+# Ошибки не должны останавливать скрипт или менять текущий каталог.
+ls -z
+cd missing/../docs
+cd text.txt/..
+ls docs
+wc /docs
+wc missing.txt
+du missing
+ls /other
