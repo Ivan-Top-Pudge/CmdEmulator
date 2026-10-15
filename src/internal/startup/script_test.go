@@ -15,7 +15,7 @@ import (
 // TestReadCommentsAndLines проверяет CRLF, пропуск комментариев и сохранение номеров строк.
 // Ничего не возвращает; о расхождениях сообщает через t.
 func TestReadCommentsAndLines(t *testing.T) {
-	input := "# комментарий\r\n\r\n  # ещё комментарий\r\nls /\r\ncd '#folder'\r\n  ls\r\n"
+	input := "// комментарий\r\n\r\n  // ещё комментарий\r\nls /\r\ncd '#folder'\r\n  ls\r\n"
 	got, err := startup.Read(strings.NewReader(input))
 	want := []startup.Command{{Text: "ls /", Line: 4}, {Text: "cd '#folder'", Line: 5}, {Text: "  ls", Line: 6}}
 	if err != nil || !reflect.DeepEqual(got, want) {
@@ -26,7 +26,8 @@ func TestReadCommentsAndLines(t *testing.T) {
 // TestRunErrorsAndExit проверяет продолжение после ошибок и остановку на корректном exit.
 // Ничего не возвращает; о расхождениях сообщает через t.
 func TestRunErrorsAndExit(t *testing.T) {
-	commands, err := startup.Read(strings.NewReader("unknown\nexit extra\nls /\nexit\ncd /\n"))
+	input := "// comment\nunknown\nexit extra\n/* block\nignored\n*/\nls /\nexit\ncd /\n"
+	commands, err := startup.Read(strings.NewReader(input))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +44,7 @@ func TestRunErrorsAndExit(t *testing.T) {
 	if want := []string{"unknown", "exit extra", "ls /", "exit"}; !reflect.DeepEqual(displayed, want) {
 		t.Fatalf("порядок команд: %q; want %q", displayed, want)
 	}
-	if messages[0] == nil || !strings.Contains(messages[0].Error(), "строка 1") || messages[1] == nil {
+	if messages[0] == nil || !strings.Contains(messages[0].Error(), "строка 2") || messages[1] == nil {
 		t.Fatalf("ошибки должны содержать номера строк: %v", messages)
 	}
 	if messages[2] != nil || messages[3] != nil {
@@ -54,7 +55,11 @@ func TestRunErrorsAndExit(t *testing.T) {
 // TestRunKeepsSession проверяет возврат в интерактивный режим после обычного или пустого скрипта.
 // Ничего не возвращает; о расхождениях сообщает через t.
 func TestRunKeepsSession(t *testing.T) {
-	for _, input := range []string{"", "# only comment\n", "unknown\nls\n"} {
+	inputs := []string{
+		"", "// only comment\n", "/* only comment */\n",
+		"/* block\ncomment */\n", "unknown\nls\n",
+	}
+	for _, input := range inputs {
 		commands, err := startup.Read(strings.NewReader(input))
 		if err != nil {
 			t.Fatal(err)

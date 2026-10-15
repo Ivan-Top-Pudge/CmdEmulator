@@ -127,7 +127,7 @@ func TestWindowCustomPrompt(t *testing.T) {
 // TestWindowStartupThenInteractive проверяет запуск скрипта после старта GUI и возвращение к ручному вводу.
 // Ничего не возвращает; о расхождениях сообщает через t.
 func TestWindowStartupThenInteractive(t *testing.T) {
-	commands, err := startup.Read(strings.NewReader("# comment\nls /\nunknown\nexit extra\ncd /\n"))
+	commands, err := startup.Read(strings.NewReader("// comment\n/*\nexit\n*/\nls /\nunknown\nexit extra\ncd /\n"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +143,7 @@ func TestWindowStartupThenInteractive(t *testing.T) {
 			t.Fatalf("в истории нет команды %q: %q", command, output.Text())
 		}
 	}
-	if !strings.Contains(output.Text(), "startup.Run: строка 3") {
+	if !strings.Contains(output.Text(), "startup.Run: строка 6") {
 		t.Fatalf("нет номера ошибочной строки: %q", output.Text())
 	}
 	if input.Disabled() || button.Disabled() || window.Canvas().Focused() != input {
