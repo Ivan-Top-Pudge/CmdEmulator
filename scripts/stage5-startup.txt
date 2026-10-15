@@ -1,0 +1,41 @@
+# Этап 5: создание каталогов и права, изменения только в памяти.
+ls -lha
+mkdir session-only
+mkdir /session-only/nested
+mkdir "my folder/child folder"
+cd /session-only/nested
+mkdir ../../docs/../other/new
+ls /other
+cd ../..
+ls -l /session-only
+chmod 700 /session-only
+chmod 750 /session-only/nested
+cd /session-only
+ls -la
+chmod 711 .
+chmod 600 /text.txt
+ls -l /text.txt
+wc /text.txt
+chmod 000 /text.txt
+ls -l /text.txt
+chmod 777 /text.txt
+ls -l /text.txt
+chmod 755 /text.txt
+chmod 750 /session-only/nested/..
+ls -la
+cd /
+mkdir ./-folder
+chmod 700 ./-folder
+ls -la ./-folder
+# Ошибки должны оставлять VFS без частичных изменений.
+mkdir /session-only
+mkdir /text.txt
+mkdir /missing/child
+mkdir /missing/../bad
+mkdir /text.txt/../bad
+chmod 888 /text.txt
+chmod a+x /text.txt
+chmod 755 /missing
+chmod 755 /text.txt/..
+ls -l /text.txt
+ls -la /session-only

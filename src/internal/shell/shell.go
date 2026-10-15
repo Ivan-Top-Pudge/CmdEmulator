@@ -60,6 +60,10 @@ func (sh *Shell) dispatch(command string, args []string) (Result, error) {
 		return sh.diskUsage(args)
 	case "wc":
 		return sh.wordCount(args)
+	case "mkdir":
+		return sh.makeDirectory(args)
+	case "chmod":
+		return sh.changeMode(args)
 	case "exit":
 		if len(args) != 0 {
 			return Result{}, fmt.Errorf("%s: exit: команда не принимает аргументы", op)

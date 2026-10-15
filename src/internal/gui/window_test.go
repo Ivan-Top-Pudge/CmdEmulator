@@ -188,3 +188,27 @@ func triggerStarted(t *testing.T, application fyne.App) {
 	}
 	lifecycle.OnStarted()()
 }
+
+// TestWindowMutations проверяет изменение дерева и прав через реальные обработчики ввода GUI.
+func TestWindowMutations(t *testing.T) {
+	_, input, output, button := newTestWindow(t)
+	for _, command := range []string{"mkdir /new", "chmod 700 /new", "ls -l /"} {
+		input.SetText(command)
+		test.Tap(button)
+	}
+	if !strings.HasSuffix(output.Text(), "drwxr-xr-x 0 folder\n-rw-r--r-- 6 hello.txt\ndrwx------ 0 new") {
+		t.Fatalf("не отображены изменения VFS: %q", output.Text())
+	}
+	input.SetText("chmod 999 /new")
+	test.Tap(button)
+	if !strings.Contains(output.Text(), "Ошибка: shell.Execute: shell.chmod:") {
+		t.Fatalf("нет ошибки прав: %q", output.Text())
+	}
+	input.SetText("cd /new")
+	test.Tap(button)
+	input.SetText("ls -la")
+	test.Tap(button)
+	if !strings.HasSuffix(output.Text(), "drwx------ 0 .\ndrwxr-xr-x 0 ..") {
+		t.Fatalf("ошибка изменила права или каталог: %q", output.Text())
+	}
+}
