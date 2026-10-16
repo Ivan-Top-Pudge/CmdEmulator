@@ -33,7 +33,6 @@ func TestRunErrorsAndExit(t *testing.T) {
 	}
 	var displayed []string
 	var messages []error
-	// display запоминает результаты команд для проверки порядка; ничего не возвращает.
 	display := func(command startup.Command, result shell.Result, err error) {
 		displayed = append(displayed, command.Text)
 		messages = append(messages, err)
@@ -64,7 +63,6 @@ func TestRunKeepsSession(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		// display принимает результат без сохранения; ничего не возвращает.
 		display := func(startup.Command, shell.Result, error) {}
 		if startup.Run(commands, shell.New(nil), display) {
 			t.Fatalf("скрипт без exit завершил сеанс: %q", input)

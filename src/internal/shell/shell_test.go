@@ -107,7 +107,6 @@ func TestExecuteErrorsAndRecovery(t *testing.T) {
 func TestExecuteUnsetEnvironment(t *testing.T) {
 	const missing = "EMULATOR_TEST_UNSET_VARIABLE"
 	t.Setenv(missing, "")
-	// Unsetenv проверяется отдельно от переменной с явно заданным пустым значением.
 	if err := os.Unsetenv(missing); err != nil {
 		t.Fatal(err)
 	}

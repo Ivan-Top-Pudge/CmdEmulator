@@ -33,7 +33,7 @@ type terminal struct {
 	options Options
 }
 
-// NewWindow создаёт и возвращает окно REPL с именем VFS в заголовке и обработчиками ввода.
+// NewWindow создаёт и возвращает окно REPL с именем VFS в заголовке и отправкой команд по Enter и кнопке.
 // Скрипт выполнится при запуске цикла Fyne; до его окончания ручной ввод недоступен.
 func NewWindow(application fyne.App, engine *shell.Shell, options Options) fyne.Window {
 	t := &terminal{
@@ -43,7 +43,6 @@ func NewWindow(application fyne.App, engine *shell.Shell, options Options) fyne.
 	t.output.ShowLineNumbers = false
 	t.output.Scroll = container.ScrollBoth
 	t.input.SetPlaceHolder("Введите команду...")
-	// OnSubmitted отправляет команду по Enter и ничего не возвращает.
 	t.input.OnSubmitted = func(string) { t.submit() }
 	t.button = widget.NewButton("Выполнить", t.submit)
 	controls := container.NewBorder(nil, nil, widget.NewLabel(options.Prompt), t.button, t.input)
@@ -90,7 +89,6 @@ func (t *terminal) display(command string, result shell.Result, err error) {
 // runStartup выполняет скрипт после запуска Fyne и включает ручной ввод, если скрипт не завершил сеанс.
 // Ничего не возвращает; каждая команда отображается тем же способом, что и ручной ввод.
 func (t *terminal) runStartup() {
-	// display показывает результат строки скрипта в истории и ничего не возвращает.
 	display := func(command startup.Command, result shell.Result, err error) {
 		t.display(command.Text, result, err)
 	}
