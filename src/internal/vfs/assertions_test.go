@@ -14,7 +14,9 @@ func assertParsedDirectories(t *testing.T, filesystem *vfs.FS) {
 		wantRootPermissions = 0750
 		wantDocsPermissions = 0755
 	)
-	if filesystem.Name != "test-vfs" || !filesystem.Root.Mode.IsDir() || filesystem.Root.Mode.Perm() != wantRootPermissions {
+	if filesystem.Name != "test-vfs" ||
+		!filesystem.Root.Mode.IsDir() ||
+		filesystem.Root.Mode.Perm() != wantRootPermissions {
 		t.Fatalf("неверные метаданные корня: %+v", filesystem)
 	}
 	docs := child(t, filesystem.Root, "docs")
@@ -39,7 +41,9 @@ func assertParsedFiles(t *testing.T, root *vfs.Node) {
 	}
 	binary := child(t, root, "data.bin")
 	wantBinaryData := []byte{0, 1, 2, 255}
-	if !bytes.Equal(binary.Data, wantBinaryData) || binary.Mode.Perm() != wantBinaryPermissions || binary.Size() != int64(len(wantBinaryData)) {
+	if !bytes.Equal(binary.Data, wantBinaryData) ||
+		binary.Mode.Perm() != wantBinaryPermissions ||
+		binary.Size() != int64(len(wantBinaryData)) {
 		t.Fatalf("неверные двоичные данные: %+v", binary)
 	}
 	if hello.Size() != int64(len(hello.Data)) {
