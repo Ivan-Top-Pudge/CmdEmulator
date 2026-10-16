@@ -10,11 +10,15 @@ import (
 // assertParsedDirectories проверяет имя VFS, тип и права каталогов, а также нулевые размеры.
 func assertParsedDirectories(t *testing.T, filesystem *vfs.FS) {
 	t.Helper()
-	if filesystem.Name != "test-vfs" || !filesystem.Root.Mode.IsDir() || filesystem.Root.Mode.Perm() != 0750 {
+	const (
+		wantRootPermissions = 0750
+		wantDocsPermissions = 0755
+	)
+	if filesystem.Name != "test-vfs" || !filesystem.Root.Mode.IsDir() || filesystem.Root.Mode.Perm() != wantRootPermissions {
 		t.Fatalf("неверные метаданные корня: %+v", filesystem)
 	}
 	docs := child(t, filesystem.Root, "docs")
-	if !docs.Mode.IsDir() || docs.Mode.Perm() != 0755 || docs.Size() != 0 {
+	if !docs.Mode.IsDir() || docs.Mode.Perm() != wantDocsPermissions || docs.Size() != 0 {
 		t.Fatalf("неверные метаданные каталога: %+v", docs)
 	}
 	if child(t, docs, "empty.txt").Size() != 0 {
@@ -25,12 +29,17 @@ func assertParsedDirectories(t *testing.T, filesystem *vfs.FS) {
 // assertParsedFiles проверяет тип, права, содержимое и декодированные размеры текстового и двоичного файлов.
 func assertParsedFiles(t *testing.T, root *vfs.Node) {
 	t.Helper()
+	const (
+		wantTextPermissions   = 0640
+		wantBinaryPermissions = 0644
+	)
 	hello := child(t, root, "hello.txt")
-	if hello.Mode.IsDir() || hello.Mode.Perm() != 0640 || string(hello.Data) != "Hello, VFS!\n" {
+	if hello.Mode.IsDir() || hello.Mode.Perm() != wantTextPermissions || string(hello.Data) != "Hello, VFS!\n" {
 		t.Fatalf("неверные данные файла: %+v", hello)
 	}
 	binary := child(t, root, "data.bin")
-	if !bytes.Equal(binary.Data, []byte{0, 1, 2, 255}) || binary.Mode.Perm() != 0644 || binary.Size() != 4 {
+	wantBinaryData := []byte{0, 1, 2, 255}
+	if !bytes.Equal(binary.Data, wantBinaryData) || binary.Mode.Perm() != wantBinaryPermissions || binary.Size() != int64(len(wantBinaryData)) {
 		t.Fatalf("неверные двоичные данные: %+v", binary)
 	}
 	if hello.Size() != int64(len(hello.Data)) {

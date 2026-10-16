@@ -167,7 +167,6 @@ func TestWindowStartupExit(t *testing.T) {
 	application, window, _, output, _ := newConfiguredTestWindow(t,
 		gui.Options{VFSName: "script-vfs", Prompt: "$ ", Startup: commands})
 	closed := false
-	// OnClosed запоминает закрытие окна для проверки и ничего не возвращает.
 	window.SetOnClosed(func() { closed = true })
 	window.Show()
 	triggerStarted(t, application)
